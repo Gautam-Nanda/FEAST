@@ -1,6 +1,6 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, TIMESTAMP
 from sqlalchemy.orm import relationship
-
+from sqlalchemy.sql.sqltypes import Text
 from database import Base
 
 
@@ -23,18 +23,15 @@ class User(Base):
 class Shop(Base):
     __tablename__ = "shops"
 
-    # shop_id, name, address, description, contact, receives orders, has reviews
     shop_id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
     address = Column(String, index=True)
-    description = Column(String)
+    description = Column(Text)
     contact = Column(String, index=True)
 
-    # one to many relationship with orders
     orders = relationship("Order", back_populates="shop")
-
-    # one to many relationship with reviews
     reviews = relationship("Review", back_populates="reviewed_shop")
+    items = relationship("Item", back_populates="shop")
 
 class Order(Base):
     __tablename__ = "orders"
@@ -59,7 +56,7 @@ class Review(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.user_id"))
     shop_id = Column(Integer, ForeignKey("shops.shop_id"))
-    created_at = Column(String)
+    created_at = Column(TIMESTAMP)
     rating = Column(Integer)
     comment = Column(String)
 
@@ -71,3 +68,17 @@ class Review(Base):
 
 
 
+class Item(Base):
+    __tablename__ = "food_item"
+
+    item_id = Column(Integer, primary_key=True, index=True)
+    name = Column(String)
+    veg_or_nonveg = Column(String)
+    description = Column(String)
+    price = Column(Integer)
+    order_id = Column(Integer, ForeignKey("orders.id"))
+    review_id = Column(Integer, ForeignKey("reviews.id"))
+    shop_id = Column(Integer, ForeignKey("shops.shop_id"))
+    available = Column(Boolean)
+
+    shop = relationship("Shop", back_populates="items")
