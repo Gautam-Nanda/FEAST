@@ -56,6 +56,7 @@ class Review(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.user_id"))
     shop_id = Column(Integer, ForeignKey("shops.shop_id"))
+    item_id = Column(Integer, ForeignKey("food_item.item_id"))
     created_at = Column(TIMESTAMP)
     rating = Column(Integer)
     comment = Column(String)
@@ -77,7 +78,6 @@ class Item(Base):
     description = Column(String)
     price = Column(Integer)
     order_id = Column(Integer, ForeignKey("orders.id"))
-    review_id = Column(Integer, ForeignKey("reviews.id"))
     shop_id = Column(Integer, ForeignKey("shops.shop_id"))
     available = Column(Boolean)
 

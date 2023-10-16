@@ -28,6 +28,7 @@ async def read_user(user_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
     return db_user
 
+
 @app.get("/shops")
 async def get_shops(db: Session = Depends(get_db)):
     shops = crud.get_shops(db)
@@ -35,14 +36,17 @@ async def get_shops(db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="No shops found")
     return shops
 
+
 @app.get("/available-items/{shop_id}")
 async def read_available_items_for_shop(shop_id: int, db: Session = Depends(get_db)):
     available_items = crud.get_available_items_for_shop(db, shop_id)
-    
+
     if not available_items:
-        raise HTTPException(status_code=404, detail="No available items found for the specified shop")
-    
+        raise HTTPException(
+            status_code=404, detail="No available items found for the specified shop")
+
     return available_items
+
 
 @app.post("/add-review/{shop_id}/{item_id}")
 async def add_review_to_item(
@@ -52,22 +56,25 @@ async def add_review_to_item(
     db: Session = Depends(get_db)
 ):
     # Check if the item belongs to the specified shop
-    item = db.query(models.Item).filter(models.Item.shop_id == shop_id, models.Item.item_id == item_id).first()
-    
+    item = crud.check_item_belongs_shop(db, shop_id, item_id)
+
     if item is None:
-        raise HTTPException(status_code=404, detail="Item not found for the specified shop")
-    
+        raise HTTPException(
+            status_code=404, detail="Item not found for the specified shop")
+
     # Assuming Review is a Pydantic model for request data, you can create a Review object
-    new_review = models.Review(
-        user_id=review.user_id,  # Set the user_id from the request data
-        shop_id=shop_id,  # Use the shop_id from the URL
-        created_at=review.created_at,  # Set created_at from the request data
-        rating=review.rating,  # Set the rating from the request data
-        comment=review.comment  # Set the comment from the request data
-    )
-    
-    # Add the new review to the database
-    db.add(new_review)
-    db.commit()
-    
+    new_review = crud.create_item_review(
+        db, review.user_id, shop_id, item_id, review)
+
     return new_review
+
+
+@app.get("/reviews/{shop_id}/{item_id}")
+async def read_item_reviews(shop_id: int, item_id: int, db: Session = Depends(get_db)):
+    item_reviews = crud.get_item_reviews(db, shop_id, item_id)
+
+    if not item_reviews:
+        raise HTTPException(
+            status_code=404, detail="No available items found for the specified shop")
+
+    return item_reviews
