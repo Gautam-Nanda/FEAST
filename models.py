@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, TIMESTAMP
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, TIMESTAMP, Float
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.sqltypes import Text
 from database import Base
@@ -20,6 +20,7 @@ class User(Base):
     # one to many relationship with reviews
     reviews = relationship("Review", back_populates="reviewer")
 
+
 class Shop(Base):
     __tablename__ = "shops"
 
@@ -28,10 +29,16 @@ class Shop(Base):
     address = Column(String, index=True)
     description = Column(Text)
     contact = Column(String, index=True)
+    # create a column tags which stores an array of texts
+    tags = Column(String)
+    # create a column image which stores the image url
+    image_url = Column(String)
+    avg_rating = Column(String)
 
     orders = relationship("Order", back_populates="shop")
     reviews = relationship("Review", back_populates="reviewed_shop")
     items = relationship("Item", back_populates="shop")
+
 
 class Order(Base):
     __tablename__ = "orders"
@@ -48,6 +55,7 @@ class Order(Base):
 
     # many to one relationship with shops
     shop = relationship("Shop", back_populates="orders")
+
 
 class Review(Base):
     __tablename__ = "reviews"
@@ -68,7 +76,6 @@ class Review(Base):
     reviewed_shop = relationship("Shop", back_populates="reviews")
 
 
-
 class Item(Base):
     __tablename__ = "food_item"
 
@@ -80,5 +87,6 @@ class Item(Base):
     order_id = Column(Integer, ForeignKey("orders.id"))
     shop_id = Column(Integer, ForeignKey("shops.shop_id"))
     available = Column(Boolean)
+    item_rating = Column(Float)
 
     shop = relationship("Shop", back_populates="items")

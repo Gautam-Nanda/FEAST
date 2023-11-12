@@ -22,6 +22,7 @@ class ItemCreate(BaseModel):
     price: int
     shop_id: int
     available: bool
+    item_rating: float
 
 
 class Item(ItemCreate):
