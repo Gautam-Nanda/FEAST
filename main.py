@@ -55,6 +55,7 @@ async def add_review_to_item(
     review: schemas.Review,  # Assuming you're using Pydantic schemas for request data
     db: Session = Depends(get_db)
 ):
+    print(review)
     # Check if the item belongs to the specified shop
     item = crud.check_item_belongs_shop(db, shop_id, item_id)
 
@@ -65,6 +66,13 @@ async def add_review_to_item(
     # Assuming Review is a Pydantic model for request data, you can create a Review object
     new_review = crud.create_item_review(
         db, review.user_id, shop_id, item_id, review)
+
+    # get avg rating of item and number of reviews
+    # total_rating = avg_rating * num_reviews
+    # update avg rating of item
+    # avg_rating = (total_rating + new_review.rating) / (num_reviews + 1)
+    # update num_reviews of item
+    # num_reviews += 1
 
     return new_review
 

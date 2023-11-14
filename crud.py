@@ -35,3 +35,6 @@ def create_item_review(db: Session, user_id: int, shop_id: int,item_id:int, new_
 
 def get_item_reviews(db: Session, shop_id: int, item_id: int):
     return db.query(models.Review).filter(models.Item.shop_id == shop_id, models.Review.item_id == item_id).all()
+
+
+
