@@ -60,6 +60,7 @@ class Order(Base):
     # one to many relationship with order_items
     items = relationship("OrderItem", back_populates="order")
 
+
 class OrderItem(Base):
     __tablename__ = "order_items"
 
@@ -68,12 +69,14 @@ class OrderItem(Base):
     order_id = Column(Integer, ForeignKey("orders.id"))
     item_id = Column(Integer, ForeignKey("food_item.item_id"))
     quantity = Column(Integer)
+    total = Column(Integer)
 
     # many to one relationship with orders
     order = relationship("Order", back_populates="items")
 
     # many to one relationship with items
     item = relationship("Item", back_populates="order_items")
+
 
 class Review(Base):
     __tablename__ = "reviews"

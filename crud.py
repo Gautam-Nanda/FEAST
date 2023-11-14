@@ -20,7 +20,7 @@ def check_item_belongs_shop(db: Session, shop_id: int, item_id: int):
     return db.query(models.Item).filter(models.Item.shop_id == shop_id, models.Item.item_id == item_id).first()
 
 
-def create_item_review(db: Session, user_id: int, shop_id: int,item_id:int, new_review_data: ReviewCreate):
+def create_item_review(db: Session, user_id: int, shop_id: int, item_id: int, new_review_data: ReviewCreate):
     new_review = models.Review(
         user_id=user_id,
         shop_id=shop_id,
@@ -42,6 +42,7 @@ def get_shop_reviews(db: Session, shop_id: int):
     # send reivewer name and item name as well
     return db.query(models.Review).filter(models.Review.shop_id == shop_id).options(joinedload(models.Review.reviewer), joinedload(models.Review.reviewed_item)).all()
 
+
 def create_order(db: Session, user_id: int, shop_id: int, items: list, total: int):
     new_order = models.Order(
         user_id=user_id,
@@ -57,25 +58,44 @@ def create_order(db: Session, user_id: int, shop_id: int, items: list, total: in
         new_order_item = models.OrderItem(
             order_id=new_order.id,
             item_id=item.item_id,
-            quantity=item.quantity
+            quantity=item.quantity,
+            total=total
         )
         db.add(new_order_item)
         db.commit()
     return {"order_id": new_order.id}
 
+
+def get_store_name(db: Session, shop_id: int):
+    return db.query(models.Shop).filter(models.Shop.shop_id == shop_id).first().name
+
+
+def get_item_names(db: Session, item_id: int):
+    return db.query(models.Item).filter(models.Item.item_id == item_id).first().name
+
+
+def get_orders(db: Session):
+    return db.query(models.OrderItem).all()
+
+
 def get_store_id(db: Session, item_id: int):
     return db.query(models.Item).filter(models.Item.item_id == item_id).first().shop_id
+
 
 def get_store_orders(db: Session, shop_id: int, limit: int, type: str):
     if type == "ALL":
         return db.query(models.Order).filter(models.Order.shop_id == shop_id).options(joinedload(models.Order.items).joinedload(models.OrderItem.item)).limit(limit).all()
     return db.query(models.Order).filter(models.Order.shop_id == shop_id).filter(models.Order.status == type).options(joinedload(models.Order.items).joinedload(models.OrderItem.item)).limit(limit).all()
 
+
 def get_store_revenue(db: Session, shop_id: int):
     today = datetime.now()
-    revenue_daily = db.query(models.Order).filter(models.Order.shop_id == shop_id, models.Order.created_at >= today).all()
-    revenue_weekly = db.query(models.Order).filter(models.Order.shop_id == shop_id, models.Order.created_at >= today - timedelta(days=7)).all()
-    revenue_monthly = db.query(models.Order).filter(models.Order.shop_id == shop_id, models.Order.created_at >= today - timedelta(days=30)).all()
+    revenue_daily = db.query(models.Order).filter(
+        models.Order.shop_id == shop_id, models.Order.created_at >= today).all()
+    revenue_weekly = db.query(models.Order).filter(
+        models.Order.shop_id == shop_id, models.Order.created_at >= today - timedelta(days=7)).all()
+    revenue_monthly = db.query(models.Order).filter(
+        models.Order.shop_id == shop_id, models.Order.created_at >= today - timedelta(days=30)).all()
 
     # return only numbers
     revenue_daily = sum([order.total for order in revenue_daily])
@@ -83,6 +103,7 @@ def get_store_revenue(db: Session, shop_id: int):
     revenue_monthly = sum([order.total for order in revenue_monthly])
 
     return {"daily": revenue_daily, "weekly": revenue_weekly, "monthly": revenue_monthly}
+
 
 def update_order_status(db: Session, order_id: int, status: str):
     order = db.query(models.Order).filter(models.Order.id == order_id).first()
