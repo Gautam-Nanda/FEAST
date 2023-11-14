@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from database import SessionLocal
 import crud
 import schemas
-from datetime import datetime
+from typing import Optional
 
 app = FastAPI()
 
@@ -89,6 +89,16 @@ async def read_shop_reviews(shop_id: int, db: Session = Depends(get_db)):
 
     return shop_reviews
 
+@app.get("/orders/store/{store_id}")
+async def get_store_orders(store_id: int, limit: Optional[int] = 3, type: Optional[str] = "ALL", db: Session = Depends(get_db)):
+    orders = crud.get_store_orders(db, store_id, limit=limit, type=type)
+
+    if not orders:
+        raise HTTPException(
+            status_code=404, detail="No available orders found for the specified store")
+
+    return orders
+
 @app.post("/orders/create")
 async def create_order(order: schemas.OrderCreate, db: Session = Depends(get_db)):
     # get store id from item id
@@ -97,20 +107,8 @@ async def create_order(order: schemas.OrderCreate, db: Session = Depends(get_db)
 
     return new_order
 
-@app.get("/orders/store/{store_id}")
-async def get_store_orders(store_id: int, db: Session = Depends(get_db)):
-    orders = crud.get_store_orders(db, store_id)
-
-    if not orders:
-        raise HTTPException(
-            status_code=404, detail="No available orders found for the specified store")
-
-    return orders
-
 @app.get("/store/{store_id}/revenue-stats")
 async def get_store_revenue(store_id: int, db: Session = Depends(get_db)):
-    # convert start_date and end_date to datetime
-    # this is the format - 2021-01-01
     revenue = crud.get_store_revenue(db, store_id)
 
     if not revenue:
@@ -118,3 +116,13 @@ async def get_store_revenue(store_id: int, db: Session = Depends(get_db)):
             status_code=404, detail="No revenue found for the specified store")
 
     return revenue
+
+@app.put("/orders/{order_id}/status")
+async def update_order_status(order_id: int, status: str , db: Session = Depends(get_db)):
+    order = crud.update_order_status(db, order_id, status)
+
+    if not order:
+        raise HTTPException(
+            status_code=404, detail="No order found for the specified order id")
+
+    return order

@@ -65,8 +65,10 @@ def create_order(db: Session, user_id: int, shop_id: int, items: list, total: in
 def get_store_id(db: Session, item_id: int):
     return db.query(models.Item).filter(models.Item.item_id == item_id).first().shop_id
 
-def get_store_orders(db: Session, shop_id: int):
-    return db.query(models.Order).filter(models.Order.shop_id == shop_id).options(joinedload(models.Order.items).joinedload(models.OrderItem.item)).all()
+def get_store_orders(db: Session, shop_id: int, limit: int, type: str):
+    if type == "ALL":
+        return db.query(models.Order).filter(models.Order.shop_id == shop_id).options(joinedload(models.Order.items).joinedload(models.OrderItem.item)).limit(limit).all()
+    return db.query(models.Order).filter(models.Order.shop_id == shop_id).filter(models.Order.status == type).options(joinedload(models.Order.items).joinedload(models.OrderItem.item)).limit(limit).all()
 
 def get_store_revenue(db: Session, shop_id: int):
     today = datetime.now()
@@ -80,3 +82,9 @@ def get_store_revenue(db: Session, shop_id: int):
     revenue_monthly = sum([order.total for order in revenue_monthly])
 
     return {"daily": revenue_daily, "weekly": revenue_weekly, "monthly": revenue_monthly}
+
+def update_order_status(db: Session, order_id: int, status: str):
+    order = db.query(models.Order).filter(models.Order.id == order_id).first()
+    order.status = status
+    db.commit()
+    return order
