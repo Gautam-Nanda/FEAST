@@ -1,5 +1,6 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 import models
+from datetime import datetime
 from schemas import ReviewCreate
 
 
@@ -35,3 +36,34 @@ def create_item_review(db: Session, user_id: int, shop_id: int,item_id:int, new_
 
 def get_item_reviews(db: Session, shop_id: int, item_id: int):
     return db.query(models.Review).filter(models.Item.shop_id == shop_id, models.Review.item_id == item_id).all()
+
+def get_shop_reviews(db: Session, shop_id: int):
+    # send reivewer name and item name as well
+    return db.query(models.Review).filter(models.Review.shop_id == shop_id).options(joinedload(models.Review.reviewer), joinedload(models.Review.reviewed_item)).all()
+
+def create_order(db: Session, user_id: int, shop_id: int, items: list, total: int):
+    new_order = models.Order(
+        user_id=user_id,
+        shop_id=shop_id,
+        total=total,
+        status="PENDING",
+        created_at=datetime.now()
+    )
+    db.add(new_order)
+    db.commit()
+    db.refresh(new_order)
+    for item in items:
+        new_order_item = models.OrderItem(
+            order_id=new_order.id,
+            item_id=item.item_id,
+            quantity=item.quantity
+        )
+        db.add(new_order_item)
+        db.commit()
+    return {"order_id": new_order.id}
+
+def get_store_id(db: Session, item_id: int):
+    return db.query(models.Item).filter(models.Item.item_id == item_id).first().shop_id
+
+def get_store_orders(db: Session, shop_id: int):
+    return db.query(models.Order).filter(models.Order.shop_id == shop_id).options(joinedload(models.Order.items).joinedload(models.OrderItem.item)).all()

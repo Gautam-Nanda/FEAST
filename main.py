@@ -75,6 +75,34 @@ async def read_item_reviews(shop_id: int, item_id: int, db: Session = Depends(ge
 
     if not item_reviews:
         raise HTTPException(
-            status_code=404, detail="No available items found for the specified shop")
+            status_code=404, detail="No available reviews found for the specified item")
 
     return item_reviews
+
+@app.get("/reviews/{shop_id}")
+async def read_shop_reviews(shop_id: int, db: Session = Depends(get_db)):
+    shop_reviews = crud.get_shop_reviews(db, shop_id)
+
+    if not shop_reviews:
+        raise HTTPException(
+            status_code=404, detail="No available reviews found for the specified shop")
+
+    return shop_reviews
+
+@app.post("/orders/create")
+async def create_order(order: schemas.OrderCreate, db: Session = Depends(get_db)):
+    # get store id from item id
+    store_id = crud.get_store_id(db, order.items[0].item_id)
+    new_order = crud.create_order(db, order.user_id, store_id, order.items, order.total)
+
+    return new_order
+
+@app.get("/orders/store/{store_id}")
+async def get_store_orders(store_id: int, db: Session = Depends(get_db)):
+    orders = crud.get_store_orders(db, store_id)
+
+    if not orders:
+        raise HTTPException(
+            status_code=404, detail="No available orders found for the specified store")
+
+    return orders

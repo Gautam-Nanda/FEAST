@@ -47,6 +47,7 @@ class Order(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.user_id"))
     shop_id = Column(Integer, ForeignKey("shops.shop_id"))
+    total = Column(Float)
     created_at = Column(String)
     status = Column(String)
 
@@ -56,6 +57,23 @@ class Order(Base):
     # many to one relationship with shops
     shop = relationship("Shop", back_populates="orders")
 
+    # one to many relationship with order_items
+    items = relationship("OrderItem", back_populates="order")
+
+class OrderItem(Base):
+    __tablename__ = "order_items"
+
+    # id, order_id, item_id, quantity
+    id = Column(Integer, primary_key=True, index=True)
+    order_id = Column(Integer, ForeignKey("orders.id"))
+    item_id = Column(Integer, ForeignKey("food_item.item_id"))
+    quantity = Column(Integer)
+
+    # many to one relationship with orders
+    order = relationship("Order", back_populates="items")
+
+    # many to one relationship with items
+    item = relationship("Item", back_populates="order_items")
 
 class Review(Base):
     __tablename__ = "reviews"
@@ -75,6 +93,9 @@ class Review(Base):
     # many to one relationship with shops
     reviewed_shop = relationship("Shop", back_populates="reviews")
 
+    # many to one relationship with items
+    reviewed_item = relationship("Item", back_populates="reviews")
+
 
 class Item(Base):
     __tablename__ = "food_item"
@@ -90,3 +111,5 @@ class Item(Base):
     item_rating = Column(Float)
 
     shop = relationship("Shop", back_populates="items")
+    reviews = relationship("Review", back_populates="reviewed_item")
+    order_items = relationship("OrderItem", back_populates="item")

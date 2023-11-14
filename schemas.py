@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
-
+from typing import List
 
 class ReviewCreate(BaseModel):
     user_id: int
@@ -27,5 +27,15 @@ class ItemCreate(BaseModel):
 
 class Item(ItemCreate):
     item_id: int
+
+class OrderItem(BaseModel):
+    item_id: int
+    quantity: int
+
+class OrderCreate(BaseModel):
+    user_id: int
+    items: List[OrderItem]
+    total: int
+
 
 # If you want to create a Pydantic model for an update operation (e.g., for updating an existing review or item), you can add an additional Pydantic model for updates.
