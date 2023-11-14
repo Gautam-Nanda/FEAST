@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session, joinedload
 import models
-from datetime import datetime
+from datetime import datetime, timedelta
 from schemas import ReviewCreate
 
 
@@ -67,3 +67,16 @@ def get_store_id(db: Session, item_id: int):
 
 def get_store_orders(db: Session, shop_id: int):
     return db.query(models.Order).filter(models.Order.shop_id == shop_id).options(joinedload(models.Order.items).joinedload(models.OrderItem.item)).all()
+
+def get_store_revenue(db: Session, shop_id: int):
+    today = datetime.now()
+    revenue_daily = db.query(models.Order).filter(models.Order.shop_id == shop_id, models.Order.created_at >= today).all()
+    revenue_weekly = db.query(models.Order).filter(models.Order.shop_id == shop_id, models.Order.created_at >= today - timedelta(days=7)).all()
+    revenue_monthly = db.query(models.Order).filter(models.Order.shop_id == shop_id, models.Order.created_at >= today - timedelta(days=30)).all()
+
+    # return only numbers
+    revenue_daily = sum([order.total for order in revenue_daily])
+    revenue_weekly = sum([order.total for order in revenue_weekly])
+    revenue_monthly = sum([order.total for order in revenue_monthly])
+
+    return {"daily": revenue_daily, "weekly": revenue_weekly, "monthly": revenue_monthly}

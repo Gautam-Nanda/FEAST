@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from database import SessionLocal
 import crud
 import schemas
-import models
+from datetime import datetime
 
 app = FastAPI()
 
@@ -106,3 +106,15 @@ async def get_store_orders(store_id: int, db: Session = Depends(get_db)):
             status_code=404, detail="No available orders found for the specified store")
 
     return orders
+
+@app.get("/store/{store_id}/revenue-stats")
+async def get_store_revenue(store_id: int, db: Session = Depends(get_db)):
+    # convert start_date and end_date to datetime
+    # this is the format - 2021-01-01
+    revenue = crud.get_store_revenue(db, store_id)
+
+    if not revenue:
+        raise HTTPException(
+            status_code=404, detail="No revenue found for the specified store")
+
+    return revenue
