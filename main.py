@@ -120,9 +120,6 @@ async def create_order(order: schemas.OrderCreate, db: Session = Depends(get_db)
 
     return new_order
 
-# now create a app.get which fetches all the orders
-
-
 @app.get("/orders")
 async def get_orders(db: Session = Depends(get_db)):
     orders = crud.get_orders(db)
@@ -186,3 +183,44 @@ async def get_store_items(store_id: int, db: Session = Depends(get_db)):
             status_code=404, detail="No items found for the specified store")
 
     return items
+
+@app.get("/items/{item_id}/toggle-availability")
+async def toggle_item_availability(item_id: int, available: Optional[bool] = None, db: Session = Depends(get_db)):
+    item = crud.toggle_item_availability(db, item_id, available)
+
+    if not item:
+        raise HTTPException(
+            status_code=404, detail="No item found for the specified store")
+
+    return item
+
+@app.get("/store/{store_id}/raw_materials")
+async def get_store_raw_materials(store_id: int, db: Session = Depends(get_db)):
+    raw_materials = crud.get_store_raw_materials(db, store_id)
+
+    if not raw_materials:
+        raise HTTPException(
+            status_code=404, detail="No raw materials found for the specified store")
+
+    return raw_materials
+
+@app.get("/raw_materials/{raw_material_id}/store/{store_id}/toggle-availability")
+async def toggle_raw_material_availability(raw_material_id: int, store_id: int, available: Optional[bool] = None, db: Session = Depends(get_db)):
+    raw_material = crud.toggle_raw_material_availability(db, raw_material_id, available, store_id)
+
+    if not raw_material:
+        raise HTTPException(
+            status_code=404, detail="No raw material found for the specified store")
+
+    return raw_material
+
+@app.get("/raw_materials/{raw_material_name}/stores")
+async def get_raw_material_stores(raw_material_name: str, exclude: int, db: Session = Depends(get_db)):
+    raw_material_name = raw_material_name.lower()
+    stores = crud.get_raw_material_stores(db, raw_material_name, exclude)
+
+    if not stores:
+        raise HTTPException(
+            status_code=404, detail="No stores found for the specified raw material")
+
+    return stores

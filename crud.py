@@ -1,3 +1,4 @@
+from database import Base
 from sqlalchemy.orm import Session, joinedload
 import models
 from datetime import datetime, timedelta
@@ -120,6 +121,40 @@ def get_store_items(db: Session, shop_id: int):
         items_by_categories[category] = []
 
     for item in items:
-        items_by_categories[item.category].append([item.name, item.available])
+        items_by_categories[item.category].append([item.name, item.available, item.item_id])
 
     return items_by_categories
+
+def toggle_item_availability(db: Session, item_id: int, availability: bool):
+    item = db.query(models.Item).filter(models.Item.item_id == item_id).first()
+    if not availability:
+        item.available = not item.available
+    else:
+        item.available = availability
+    db.commit()
+    return item
+
+def get_store_raw_materials(db: Session, shop_id: int):
+    all_raw_materials = db.query(Base.metadata.tables['materials_stores']).filter(Base.metadata.tables['materials_stores'].c.store_id == shop_id).all()
+
+    # return as list of [raw_material_name, available, raw_material_id]
+    raw_materials = []
+    for raw_material in all_raw_materials:
+        raw_material_obj = db.query(models.RawMaterial).filter(models.RawMaterial.id == raw_material[1]).first()
+        raw_materials.append([raw_material_obj.name, raw_material[2], raw_material_obj.id])
+
+    return raw_materials
+
+
+def toggle_raw_material_availability(db: Session, raw_material_id: int, availability: bool, shop_id: int):
+    # toggle in the intermediate table
+    raw_material = db.query(Base.metadata.tables['materials_stores']).filter(Base.metadata.tables['materials_stores'].c.material_id == raw_material_id, Base.metadata.tables['materials_stores'].c.store_id == shop_id).update({"available": availability})
+    db.commit()
+    return raw_material
+
+def get_raw_material_stores(db: Session, raw_material_name: str, exclude: int):
+    stores = db.query(models.RawMaterial).filter(models.RawMaterial.name == raw_material_name).first().stores
+    print(stores)
+    if exclude:
+        stores = [store for store in stores if store.shop_id != exclude]
+    return stores

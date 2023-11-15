@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, TIMESTAMP, Float
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, TIMESTAMP, Float, Table
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.sqltypes import Text
 from database import Base
@@ -21,6 +21,12 @@ class User(Base):
     reviews = relationship("Review", back_populates="reviewer")
 
 
+materials_stores = Table('materials_stores', Base.metadata,
+    Column('store_id', Integer, ForeignKey('shops.shop_id')),
+    Column('material_id', Integer, ForeignKey('raw_materials.id')),
+    Column('available', Boolean, nullable=False),
+)
+
 class Shop(Base):
     __tablename__ = "shops"
 
@@ -38,6 +44,7 @@ class Shop(Base):
     orders = relationship("Order", back_populates="shop")
     reviews = relationship("Review", back_populates="reviewed_shop")
     items = relationship("Item", back_populates="shop")
+    materials = relationship("RawMaterial", secondary=materials_stores, back_populates="stores")
 
 
 class Order(Base):
@@ -117,3 +124,11 @@ class Item(Base):
     shop = relationship("Shop", back_populates="items")
     reviews = relationship("Review", back_populates="reviewed_item")
     order_items = relationship("OrderItem", back_populates="item")
+
+class RawMaterial(Base):
+    __tablename__ = "raw_materials"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String)
+    stores = relationship("Shop", secondary=materials_stores, back_populates="materials")
+
