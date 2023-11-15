@@ -175,3 +175,14 @@ async def update_order_status(order_id: int, status: str, db: Session = Depends(
             status_code=404, detail="No order found for the specified order id")
 
     return order
+
+
+@app.get("/store/{store_id}/items")
+async def get_store_items(store_id: int, db: Session = Depends(get_db)):
+    items = crud.get_store_items(db, store_id)
+
+    if not items:
+        raise HTTPException(
+            status_code=404, detail="No items found for the specified store")
+
+    return items

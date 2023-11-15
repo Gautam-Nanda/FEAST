@@ -110,3 +110,16 @@ def update_order_status(db: Session, order_id: int, status: str):
     order.status = status
     db.commit()
     return order
+
+def get_store_items(db: Session, shop_id: int):
+    # return a dict where keys - categories, values - list of lists, [item_name, availability]
+    items = db.query(models.Item).filter(models.Item.shop_id == shop_id).all()
+    categories = set([item.category for item in items])
+    items_by_categories = {}
+    for category in categories:
+        items_by_categories[category] = []
+
+    for item in items:
+        items_by_categories[item.category].append([item.name, item.available])
+
+    return items_by_categories

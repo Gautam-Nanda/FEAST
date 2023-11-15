@@ -112,6 +112,7 @@ class Item(Base):
     shop_id = Column(Integer, ForeignKey("shops.shop_id"))
     available = Column(Boolean)
     item_rating = Column(Float)
+    category = Column(String)
 
     shop = relationship("Shop", back_populates="items")
     reviews = relationship("Review", back_populates="reviewed_item")
