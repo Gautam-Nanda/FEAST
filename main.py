@@ -235,3 +235,9 @@ async def get_raw_material_stores(raw_material_name: str, exclude: int, db: Sess
             status_code=404, detail="No stores found for the specified raw material")
 
     return stores
+
+@app.post("/items")
+async def create_item(item: schemas.ItemCreate, db: Session = Depends(get_db)):
+    new_item = crud.create_item(db, item)
+
+    return new_item

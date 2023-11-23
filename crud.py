@@ -2,7 +2,7 @@ from database import Base
 from sqlalchemy.orm import Session, joinedload
 import models
 from datetime import datetime, timedelta
-from schemas import ReviewCreate
+from schemas import ReviewCreate, ItemCreate
 
 
 def get_user(db: Session, user_id: int):
@@ -173,3 +173,18 @@ def get_raw_material_stores(db: Session, raw_material_name: str, exclude: int):
     if exclude:
         stores = [store for store in stores if store.shop_id != exclude]
     return stores
+
+
+def create_item(db: Session, shop_id: int, item: ItemCreate):
+    new_item = models.Item(
+        shop_id=shop_id,
+        name=item.name,
+        category=item.category,
+        available=item.available,
+        price=item.price,
+        description=item.description
+    )
+    db.add(new_item)
+    db.commit()
+    db.refresh(new_item)
+    return new_item
